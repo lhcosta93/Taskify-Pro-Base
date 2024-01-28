@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Taskify_Pro.API.Data;
 using Taskify_Pro.API.Models;
 
 namespace Taskify_Pro.API.Controllers
@@ -11,37 +12,48 @@ namespace Taskify_Pro.API.Controllers
     [Route("api/[controller]")]
     public class TicketController : ControllerBase
     {
-        public IEnumerable<Ticket> Tickets = new List<Ticket>()
-            {
-                new Ticket(1),
-                new Ticket(2),
-                new Ticket(3)
-            };
+        private readonly DataContext _context;
 
+        public TicketController(DataContext context)
+        {
+            _context = context;
+        }
         [HttpGet]
         public IEnumerable<Ticket> Get()
         {
-            return Tickets;
+            return _context.Ticket;
         }
         [HttpGet("{id}")]
         public Ticket Get(int id)
         {
-            return Tickets.FirstOrDefault(tic => tic.Id.Equals(id));
+            return _context.Ticket.FirstOrDefault(tic => tic.Id.Equals(id));
         }
         [HttpPost]
         public IEnumerable<Ticket> Post(Ticket ticket)
         {
-            return Tickets.Append<Ticket>(ticket);
+            _context.Ticket.Add(ticket);
+            if (_context.SaveChanges() > 0) return _context.Ticket;
+            else throw new Exception("Você não conseguiu adicionar uma atividade");
         }
         [HttpPut("{id}")]
-        public string Put(int id)
+        public Ticket Put(int id, Ticket ticket)
         {
-            return $"Meu primeiro método Get com o paramêtro {id}";
+            if (!ticket.Id.Equals(id)) throw new Exception("Você está tentando atualizar a atividade errada");
+            _context.Update(ticket);
+
+            if (_context.SaveChanges() > 0) return _context.Ticket.FirstOrDefault(ativ => ativ.Id.Equals(id));
+            else return new Ticket();
         }
         [HttpDelete("{id}")]
-        public string Delete(int id)
+        public bool Delete(int id)
         {
-            return $"Meu primeiro método Delete com o paramêtro {id}";
+            var ticket = _context.Ticket.FirstOrDefault(ativ => ativ.Id.Equals(id));
+
+            if (ticket == null) new Exception("Você está tentando deletar um ticket que não existe");
+
+            _context.Remove(ticket);
+
+            return _context.SaveChanges() > 0;
         }
     }
 }

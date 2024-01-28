@@ -1,0 +1,13 @@
+1º Criar uma pasta no caminho abaixo e adicionar arquivos da pasta 'executaveis' soltos na raiz da pasta 'SQLite':
+C:\Program Files\SQLite
+
+2º No menu iniciar do windows buscar por 'Editar as variáveis de ambiente do sistema'
+
+3º Na tela 'Propriedades do Sistema' clique no botão 'Variáveis de Ambiente...'
+
+4º Na tela 'Variáveis de Ambiente' na grid inferior 'Variáveis do sistema' clique em 'Path' com a linha selecionada clique em 'Editar...'
+
+5º Na Tela 'Editar a variável de ambiente' clique em Novo e cole o caminho abaixo:
+C:\Program Files\SQLite
+
+6º Clique em OK em todas as telas abertas
