@@ -29,10 +29,10 @@ namespace Taskify_Pro.API.Controllers
             return _context.Ticket.FirstOrDefault(tic => tic.Id.Equals(id));
         }
         [HttpPost]
-        public IEnumerable<Ticket> Post(Ticket ticket)
+        public Ticket Post(Ticket ticket)
         {
             _context.Ticket.Add(ticket);
-            if (_context.SaveChanges() > 0) return _context.Ticket;
+            if (_context.SaveChanges() > 0) return _context.Ticket.FirstOrDefault(ativ => ativ.Id.Equals(ticket.Id));
             else throw new Exception("Você não conseguiu adicionar uma atividade");
         }
         [HttpPut("{id}")]
