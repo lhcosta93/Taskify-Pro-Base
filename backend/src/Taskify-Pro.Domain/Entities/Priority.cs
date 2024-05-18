@@ -1,4 +1,4 @@
-namespace Taskify_Pro.API.Models
+namespace Taskify_Pro.Domain.Entities
 {
     public enum Priority
     {

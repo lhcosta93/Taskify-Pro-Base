@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Taskify_Pro.API.Data;
-using Taskify_Pro.API.Models;
+using Taskify_Pro.Data.Context;
+using Taskify_Pro.Domain.Entities;
+using Taskify_Pro.Domain.Interfaces.Services;
 
 namespace Taskify_Pro.API.Controllers
 {
@@ -12,48 +14,83 @@ namespace Taskify_Pro.API.Controllers
     [Route("api/[controller]")]
     public class TicketController : ControllerBase
     {
-        private readonly DataContext _context;
+        private readonly ITicketService _TicketService;
 
-        public TicketController(DataContext context)
+        public TicketController(ITicketService ticketService)
         {
-            _context = context;
+            _TicketService = ticketService;
         }
         [HttpGet]
-        public IEnumerable<Ticket> Get()
+        public async Task<IActionResult> Get()
         {
-            return _context.Ticket;
+            try
+            {
+                var tickets = await _TicketService.getAllTicketAsync();
+                if (tickets == null) return NoContent();
+                return Ok(tickets);
+            }
+            catch (Exception ex)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, $"Erro ao tentar recuperar o ticket.\n\nErro{ex.Message}");
+            }
         }
         [HttpGet("{id}")]
-        public Ticket Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
-            return _context.Ticket.FirstOrDefault(tic => tic.Id.Equals(id));
+            try
+            {
+                var ticket = await _TicketService.getTicketByIdAsync(id);
+                if (ticket == null) return NoContent();
+                return Ok(ticket);
+            }
+            catch (Exception ex)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, $"Erro ao tentar recuperar o ticket com id: {id}.\n\nErro{ex.Message}");
+            }
         }
         [HttpPost]
-        public Ticket Post(Ticket ticket)
+        public async Task<IActionResult> Post(Ticket model)
         {
-            _context.Ticket.Add(ticket);
-            if (_context.SaveChanges() > 0) return _context.Ticket.FirstOrDefault(ativ => ativ.Id.Equals(ticket.Id));
-            else throw new Exception("Você não conseguiu adicionar uma atividade");
+            try
+            {
+                var ticketUpdated = await _TicketService.addTicket(model);
+                if (ticketUpdated == null) return NoContent();
+                return Ok(ticketUpdated);
+            }
+            catch (Exception ex)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, $"Erro ao tentar adicionar o ticket com id: {model.Id}.\n\nErro{ex.Message}");
+            }
         }
         [HttpPut("{id}")]
-        public Ticket Put(int id, Ticket ticket)
+        public async Task<IActionResult> Put(int id, Ticket model)
         {
-            if (!ticket.Id.Equals(id)) throw new Exception("Você está tentando atualizar a atividade errada");
-            _context.Update(ticket);
+            try
+            {
+                if (!model.Id.Equals(id)) return this.StatusCode(StatusCodes.Status409Conflict, "Você está tentando atualizar a atividade errada");
 
-            if (_context.SaveChanges() > 0) return _context.Ticket.FirstOrDefault(ativ => ativ.Id.Equals(id));
-            else return new Ticket();
+                var ticketUpdated = await _TicketService.updateTicket(model);
+
+                if (ticketUpdated == null) return NoContent();
+                return Ok(ticketUpdated);
+            }
+            catch (Exception ex)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, $"Erro ao tentar atualizar o ticket com id: {id}.\n\nErro{ex.Message}");
+            }
         }
         [HttpDelete("{id}")]
-        public bool Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var ticket = _context.Ticket.FirstOrDefault(ativ => ativ.Id.Equals(id));
-
-            if (ticket == null) new Exception("Você está tentando deletar um ticket que não existe");
-
-            _context.Remove(ticket);
-
-            return _context.SaveChanges() > 0;
+            try
+            {
+                if (await _TicketService.deleteTicket(id)) return Ok(new { message = "Deletado" });
+                return BadRequest("Ocorreu um erro não específicado ao tentar deletar o ticket.");
+            }
+            catch (Exception ex)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, $"Erro ao tentar deletar o ticket com id: {id}.\n\nErro{ex.Message}");
+            }
         }
     }
 }

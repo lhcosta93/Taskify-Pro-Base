@@ -14,7 +14,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
-using Taskify_Pro.API.Data;
+using Taskify_Pro.Data.Context;
+using Taskify_Pro.Data.Repositories;
+using Taskify_Pro.Domain.Interfaces.Repositories;
+using Taskify_Pro.Domain.Interfaces.Services;
+using Taskify_Pro.Domain.Services;
 
 namespace Taskify_Pro.API
 {
@@ -33,6 +37,11 @@ namespace Taskify_Pro.API
             services.AddDbContext<DataContext>(
                 options => options.UseSqlite(Configuration.GetConnectionString("Default"))
             );
+
+            services.AddScoped<ITicketRepo, TicketRepo>();
+            services.AddScoped<IGeneralRepo, GeneralRepo>();
+            services.AddScoped<ITicketService, TicketService>();
+
             services.AddControllers()
                     .AddJsonOptions(options =>
                         {
